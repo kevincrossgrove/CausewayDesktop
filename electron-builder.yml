@@ -1,0 +1,42 @@
+appId: network.netcore.causeway-desktop
+productName: Causeway Desktop
+directories:
+  buildResources: build
+  output: release
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,.prettierignore,.prettierrc.yaml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+win:
+  executableName: Causeway Desktop
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  artifactName: ${name}-${version}-windows-x64-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  category: public.app-category.utilities
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
+    - NSDownloadsFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
+    - NSDesktopFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}-mac-arm64.${ext}
+npmRebuild: false

@@ -1,0 +1,142 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: ABCDiatype;
+  src: url('./assets/fonts/ABCDiatype-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: ABCDiatype;
+  src: url('./assets/fonts/ABCDiatype-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: ABCDiatype;
+  src: url('./assets/fonts/ABCDiatype-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Arsenal SC';
+  src: url('./assets/fonts/ArsenalSC-400.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Arsenal SC';
+  src: url('./assets/fonts/ArsenalSC-700.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Product colors from https://www.netcore.network/causeway : cream, navy, burgundy */
+:root {
+  --cream: #fffff6;
+  --navy: #081850;
+  --burgundy: #800020;
+  --app-bg: var(--cream);
+  --app-raised: #ffffff;
+  --app-hover: color-mix(in srgb, var(--navy) 5%, var(--cream));
+  --app-line: color-mix(in srgb, var(--navy) 16%, transparent);
+  --app-ink: var(--navy);
+  --app-muted: color-mix(in srgb, var(--navy) 78%, var(--cream));
+  --app-faint: color-mix(in srgb, var(--navy) 30%, var(--cream));
+  --app-accent: var(--burgundy);
+  --app-accent-dim: color-mix(in srgb, var(--burgundy) 12%, transparent);
+  --app-danger: var(--burgundy);
+  --app-warn: #8a5a00;
+  --app-ok: #1f6b4a;
+  --app-sidebar: var(--cream);
+  --app-primary: var(--navy);
+  --app-on-primary: var(--cream);
+  --app-code: color-mix(in srgb, var(--navy) 3%, #ffffff);
+}
+
+.dark {
+  --app-bg: #16151c;
+  --app-sidebar: #12111a;
+  --app-raised: #1e1d27;
+  --app-hover: color-mix(in srgb, var(--cream) 7%, #1e1d27);
+  --app-line: color-mix(in srgb, var(--cream) 16%, transparent);
+  --app-ink: var(--cream);
+  --app-muted: color-mix(in srgb, var(--cream) 80%, #16151c);
+  --app-faint: color-mix(in srgb, var(--cream) 32%, #16151c);
+  --app-accent: #d4546a;
+  --app-accent-dim: color-mix(in srgb, var(--burgundy) 32%, transparent);
+  --app-danger: #d4546a;
+  --app-warn: #d4a84b;
+  --app-ok: #6fbf8a;
+  --app-primary: var(--cream);
+  --app-on-primary: #12111a;
+  --app-code: #0e0d14;
+}
+
+@theme {
+  --font-sans: ABCDiatype, Arsenal, 'Arsenal SC', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'Arsenal SC', ABCDiatype, Arsenal, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-bg: var(--app-bg);
+  --color-raised: var(--app-raised);
+  --color-hover: var(--app-hover);
+  --color-line: var(--app-line);
+  --color-ink: var(--app-ink);
+  --color-muted: var(--app-muted);
+  --color-faint: var(--app-faint);
+  --color-accent: var(--app-accent);
+  --color-accent-dim: var(--app-accent-dim);
+  --color-danger: var(--app-danger);
+  --color-warn: var(--app-warn);
+  --color-ok: var(--app-ok);
+  --color-sidebar: var(--app-sidebar);
+  --color-primary: var(--app-primary);
+  --color-on-primary: var(--app-on-primary);
+  --color-code: var(--app-code);
+  --color-cream: #fffff6;
+  --color-navy: #081850;
+  --color-burgundy: #800020;
+  --breakpoint-desk: 56.25rem;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply m-0 h-full bg-bg font-sans text-sm text-ink antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply font-sans text-ink;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  a {
+    @apply text-accent;
+  }
+
+  code {
+    @apply rounded-md bg-hover px-1.5 py-px font-mono text-[0.92em];
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-navy/25 dark:outline-cream/25;
+  }
+}
