@@ -16,32 +16,41 @@ export default function ConnectionPage({
     <div className="flex flex-col gap-10">
       <PageHeader
         title="Connection"
-        description="Causeway can move traffic over WireGuard (the default) or over WebRTC DataChannels. Both machines must use the same mode. Changing this restarts Causeway."
+        description="Pick how the two machines talk. Both must use the same mode. Changing this restarts Causeway."
       />
 
       <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2">
         <ModeChoice
           selected={snapshot.settings.connectionMode === 'wireguard'}
           title="WireGuard"
+          kicker="The default. Better when the path is clear."
+          benefits={[
+            'Faster for files, video, and long-running services',
+            'A dedicated encrypted tunnel between the two machines',
+            'The usual choice for a stable home-to-home link'
+          ]}
+          note={
+            snapshot.platform === 'win32'
+              ? `On Windows, keep WinTUN next to ${snapshot.binaryName}. Some ports need an extra allow step on Ports.`
+              : 'Some ports need an extra allow step on the Ports page.'
+          }
           onClick={() => void choose('wireguard')}
-        >
-          Default mode. Builds an encrypted tunnel and maps TCP ports onto localhost. On Windows,
-          WinTUN must sit next to <code>{snapshot.binaryName}</code>. Local ports may need the
-          allow-list on the Ports page.
-        </ModeChoice>
+        />
         <ModeChoice
           selected={snapshot.settings.connectionMode === 'data-channels'}
           title="DataChannels"
+          kicker="Better when networks get in the way."
+          benefits={[
+            'Gets through more home routers and strict firewalls',
+            'No extra driver to install on Windows',
+            'Port mappings work without the allow-list'
+          ]}
+          note="Can be a bit slower. Use this if WireGuard will not connect."
           onClick={() => void choose('data-channels')}
-        >
-          Starts Causeway with <code>--data-channels</code>. Uses WebRTC DataChannels instead of
-          WireGuard. Port mappings still work, and they do not need the WireGuard allow-list.
-        </ModeChoice>
+        />
       </div>
 
-      <Notice tone="warn">
-        If one peer is on WireGuard and the other is on DataChannels, they will not connect.
-      </Notice>
+      <Notice tone="warn">Both machines must use the same mode, or they will not connect.</Notice>
 
       <section>
         <h3 className="mb-4 text-[15px] font-semibold">Causeway CLI WebRTC vs WireGuard</h3>
@@ -60,13 +69,17 @@ export default function ConnectionPage({
 function ModeChoice({
   selected,
   title,
-  onClick,
-  children
+  kicker,
+  benefits,
+  note,
+  onClick
 }: {
   selected: boolean
   title: string
+  kicker: string
+  benefits: string[]
+  note?: string
   onClick: () => void
-  children: React.ReactNode
 }): React.JSX.Element {
   return (
     <button
@@ -77,7 +90,13 @@ function ModeChoice({
       onClick={onClick}
     >
       <CardLabel>{title}</CardLabel>
-      <p className="m-0 text-sm leading-relaxed text-muted">{children}</p>
+      <p className="mt-1 mb-4 text-sm leading-relaxed">{kicker}</p>
+      <ul className="m-0 flex list-disc flex-col gap-1.5 pl-4 text-sm leading-relaxed">
+        {benefits.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      {note ? <p className="mt-4 mb-0 text-[13px] leading-relaxed">{note}</p> : null}
     </button>
   )
 }

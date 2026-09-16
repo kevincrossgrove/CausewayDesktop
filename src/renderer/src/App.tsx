@@ -2,19 +2,18 @@ import { useEffect, useState } from 'react'
 import type { AppSnapshot, PageId } from '@shared/types'
 import Sidebar from './components/Sidebar'
 import SetupWizard from './components/SetupWizard'
-import SettingsPanel from './components/SettingsPanel'
 import StatusPage from './pages/StatusPage'
 import PeersPage from './pages/PeersPage'
 import PortsPage from './pages/PortsPage'
 import ConnectionPage from './pages/ConnectionPage'
 import LearnPage from './pages/LearnPage'
+import SettingsPage from './pages/SettingsPage'
 import { applyAppearance, watchSystemAppearance } from './theme'
 import { ChevronIcon, LogBlock } from './ui'
 
 export default function App(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<AppSnapshot | null>(null)
   const [page, setPage] = useState<PageId>('status')
-  const [showSettings, setShowSettings] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function App(): React.JSX.Element {
   if (!snapshot) {
     return (
       <div className="p-8">
-        <p className="text-muted">Loading…</p>
+        <p>Loading…</p>
       </div>
     )
   }
@@ -81,17 +80,15 @@ export default function App(): React.JSX.Element {
           void window.causeway.pickFolder().then(() => window.causeway.getSnapshot().then(setSnapshot))
         }
         onAppearance={(appearance) => void window.causeway.setAppearance(appearance).then(setSnapshot)}
-        showSettings={showSettings}
-        onToggleSettings={() => setShowSettings((value) => !value)}
       />
       <div className="flex min-h-0 min-w-0 flex-col">
         <main className="@container min-w-0 flex-1 overflow-auto px-6 py-7 desk:px-10 desk:py-8">
-          {showSettings && <SettingsPanel snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'status' && <StatusPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'peers' && <PeersPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'ports' && <PortsPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'connection' && <ConnectionPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'learn' && <LearnPage snapshot={snapshot} />}
+          {page === 'settings' && <SettingsPage snapshot={snapshot} onChange={setSnapshot} />}
         </main>
         <DaemonFooter snapshot={snapshot} />
       </div>
@@ -119,9 +116,9 @@ function DaemonFooter({ snapshot }: { snapshot: AppSnapshot }): React.JSX.Elemen
       >
         <span className="flex min-w-0 items-center gap-3">
           <strong className="text-[13px] font-semibold">Daemon log</strong>
-          <span className="truncate text-[13px] text-muted">{lastLog}</span>
+          <span className="truncate text-[13px]">{lastLog}</span>
         </span>
-        <span className="flex shrink-0 items-center gap-3 text-[13px] text-muted">
+        <span className="flex shrink-0 items-center gap-3 text-[13px]">
           {socketLabel}
           <ChevronIcon open={open} />
         </span>
@@ -132,7 +129,7 @@ function DaemonFooter({ snapshot }: { snapshot: AppSnapshot }): React.JSX.Elemen
           {socketReady ? (
             <LogBlock>{snapshot.statusRaw}</LogBlock>
           ) : (
-            <p className="m-0 text-[13px] text-muted">Status will show here once the command socket is ready.</p>
+            <p className="m-0 text-[13px]">Status will show here once the command socket is ready.</p>
           )}
         </div>
       )}

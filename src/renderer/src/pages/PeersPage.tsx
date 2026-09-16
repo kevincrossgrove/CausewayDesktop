@@ -121,14 +121,14 @@ export default function PeersPage({
       <section className="flex flex-col gap-4">
         <div>
           <h3 className="m-0 text-[15px] font-semibold">Port mappings</h3>
-          <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed text-muted">
+          <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed">
             A mapping is <code>local-port:remote-port</code>. After the peer is connected, this computer
             listens on the local port and forwards that TCP traffic to the remote port on the other
             machine. Example: <code>8080:80</code> means you open <code>http://127.0.0.1:8080</code> and
             Causeway sends it to port 80 on the peer.
           </p>
         </div>
-        <p className="m-0 max-w-[62ch] text-sm leading-relaxed text-muted">
+        <p className="m-0 max-w-[62ch] text-sm leading-relaxed">
           Local ports must be unique across every peer. You can add a peer first and open ports later.
           Click a listening app below to add <code>port:port</code> if that service is running on the
           other machine too, or type a mapping by hand.
@@ -145,7 +145,7 @@ export default function PeersPage({
         <div>
           <CardLabel>Listening on this computer</CardLabel>
           {listening.length === 0 ? (
-            <p className="m-0 text-sm text-muted">No localhost TCP listeners found right now.</p>
+            <p className="m-0 text-sm">No localhost TCP listeners found right now.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {listening.map((item) => {
@@ -171,7 +171,7 @@ export default function PeersPage({
 
       <section>
         {snapshot.peers.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line px-7 py-10 text-center text-sm text-muted">
+          <div className="rounded-2xl border border-dashed border-line px-7 py-10 text-center text-sm">
             No peers yet. Copy your ID on Status, send it to the other person, and add theirs here.
           </div>
         ) : (
@@ -192,7 +192,7 @@ export default function PeersPage({
                   <tr key={peer.id || peer.name}>
                     <td className={tdClass}>
                       <strong>{peer.name}</strong>
-                      <div className="mt-1 font-mono text-xs break-all text-muted">{peer.id}</div>
+                      <div className="mt-1 font-mono text-xs break-all">{peer.id}</div>
                       {peer.needsReAdd && <div className="mt-1 text-warn">Needs to be added again</div>}
                     </td>
                     <td className={tdClass}>{peer.status ?? '—'}</td>
@@ -226,7 +226,7 @@ export default function PeersPage({
       {snapshot.peersRaw && !/no such file or directory/i.test(snapshot.peersRaw) && (
         <section>
           <h3 className="mb-3 text-[15px] font-semibold">cwp2p peer list</h3>
-          <pre className="whitespace-pre-wrap break-words font-mono text-xs text-muted">{snapshot.peersRaw}</pre>
+          <pre className="whitespace-pre-wrap break-words font-mono text-xs">{snapshot.peersRaw}</pre>
         </section>
       )}
     </div>

@@ -30,7 +30,7 @@ export function Button({
         variant === 'danger' && 'border border-burgundy/25 bg-raised text-danger hover:bg-burgundy/5',
         variant === 'ghost' &&
           'rounded-none border-0 px-3 py-2.5 text-left text-[15px]',
-        variant === 'ghost' && !active && 'bg-transparent text-muted hover:text-ink',
+        variant === 'ghost' && !active && 'bg-transparent text-ink hover:bg-hover',
         variant === 'ghost' &&
           active &&
           'bg-transparent font-semibold text-ink underline decoration-burgundy decoration-2 underline-offset-[10px]',
@@ -65,7 +65,7 @@ export function Field({
   className?: string
 }): React.JSX.Element {
   return (
-    <label className={cx('flex min-w-[140px] flex-1 flex-col gap-1.5 text-[13px] text-muted', className)}>
+    <label className={cx('flex min-w-[140px] flex-1 flex-col gap-1.5 text-[13px] text-ink', className)}>
       {label}
       {children}
     </label>
@@ -75,7 +75,7 @@ export function Field({
 export const controlClass =
   'w-full rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-navy/35 dark:focus:border-cream/35'
 
-export const thClass = 'border-b border-line px-3 py-3 text-left text-xs font-medium text-muted'
+export const thClass = 'border-b border-line px-3 py-3 text-left text-xs font-semibold text-ink'
 export const tdClass = 'border-b border-line px-3 py-3.5 align-top'
 
 export function PageHeader({
@@ -91,7 +91,7 @@ export function PageHeader({
     <div className="mb-8 flex flex-col items-start justify-between gap-4 @min-[560px]:flex-row">
       <div className="max-w-[46rem]">
         <h2 className="m-0 text-[2.15rem] font-bold leading-[1.1] tracking-tight">{title}</h2>
-        <p className="mt-3 mb-0 max-w-[52ch] text-[15px] leading-relaxed text-muted">{description}</p>
+        <p className="mt-3 mb-0 max-w-[52ch] text-[15px] leading-relaxed text-ink">{description}</p>
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2.5">{actions}</div> : null}
     </div>
@@ -100,7 +100,7 @@ export function PageHeader({
 
 export function IdentityBar({ value }: { value: string }): React.JSX.Element {
   return (
-    <code className="block min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-[13px] leading-snug text-muted">
+    <code className="block min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-[13px] leading-snug">
       {value}
     </code>
   )
@@ -115,7 +115,7 @@ export function SplitControl({
 }): React.JSX.Element {
   return (
     <label className="flex min-w-0 overflow-hidden rounded-xl border border-line bg-bg focus-within:border-navy/35 dark:focus-within:border-cream/35">
-      <span className="flex shrink-0 items-center border-r border-line bg-hover px-3.5 text-[13px] text-muted">
+      <span className="flex shrink-0 items-center border-r border-line bg-hover px-3.5 text-[13px]">
         {label}
       </span>
       {children}
@@ -140,7 +140,7 @@ export function StatStrip({
             index > 1 && 'max-[719px]:border-t'
           )}
         >
-          <span className="text-[12px] text-muted">{item.label}</span>
+          <span className="text-[12px]">{item.label}</span>
           <span className="truncate text-[15px] font-semibold leading-snug" title={item.value}>
             {item.value}
           </span>
@@ -171,7 +171,7 @@ export function PortChip({
       )}
     >
       <strong className="font-mono text-[13px] font-semibold">{port}</strong>
-      <span className="text-[11px] text-muted">{detail}</span>
+      <span className="text-[11px] text-ink">{detail}</span>
     </button>
   )
 }
@@ -190,7 +190,7 @@ export function BrandMark({ className }: { className?: string }): React.JSX.Elem
 
 export function LogBlock({ children }: { children: ReactNode }): React.JSX.Element {
   return (
-    <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-code p-3.5 font-mono text-xs text-muted">
+    <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-code p-3.5 font-mono text-xs">
       {children}
     </pre>
   )

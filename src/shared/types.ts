@@ -96,7 +96,7 @@ export type AppSnapshot = {
   suggestedPeerName: string
 }
 
-export type PageId = 'status' | 'peers' | 'ports' | 'connection' | 'learn'
+export type PageId = 'status' | 'peers' | 'ports' | 'connection' | 'learn' | 'settings'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   causewayFolder: null,

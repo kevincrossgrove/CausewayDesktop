@@ -88,7 +88,7 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
           <BrandMark className="mt-0.5 size-10 rounded-xl" />
           <div>
             <h1 className="m-0 text-[17px] font-bold tracking-tight">Causeway</h1>
-            <p className="mt-1 text-sm leading-snug text-muted">
+            <p className="mt-1 text-sm leading-snug">
               A graphical wrapper around the official CLI
             </p>
           </div>
@@ -98,7 +98,7 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
           <h2 className="m-0 text-[2.15rem] font-bold leading-[1.1] tracking-tight">
             Install Causeway, then connect the folder
           </h2>
-          <p className="mt-3 max-w-[46ch] text-[15px] leading-relaxed text-muted">
+          <p className="mt-3 max-w-[46ch] text-[15px] leading-relaxed">
             This app does not include the Causeway binary. Download it from NetcoreNetwork, unzip it, and
             point this app at that folder. It will look for <code>{snapshot.binaryName}</code>.
           </p>
@@ -110,7 +110,7 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
               <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-bold text-cream dark:bg-cream dark:text-[#12110f]">
                 {index + 1}
               </span>
-              <p className="m-0 text-[15px] leading-relaxed text-muted">{step}</p>
+              <p className="m-0 text-[15px] leading-relaxed">{step}</p>
             </li>
           ))}
         </ol>
@@ -147,7 +147,7 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
           <h2 className="m-0 text-[2.15rem] font-bold leading-[1.1] tracking-tight">
             Connect the unzipped folder
           </h2>
-          <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-muted">
+          <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed">
             Choose the folder that contains {snapshot.binaryName}. This app remembers it and uses it to
             start Causeway and run commands.
           </p>
@@ -174,7 +174,7 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
         </div>
         {error && <p className="text-danger">{error}</p>}
         {result?.ok && (
-          <p className="text-muted">
+          <p>
             Connected {result.folder}. Causeway {result.version}
           </p>
         )}

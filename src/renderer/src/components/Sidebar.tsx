@@ -19,8 +19,6 @@ type Props = {
   appearance: Appearance
   onChangeFolder: () => void
   onAppearance: (appearance: Appearance) => void
-  showSettings: boolean
-  onToggleSettings: () => void
 }
 
 export default function Sidebar({
@@ -30,9 +28,7 @@ export default function Sidebar({
   folder,
   appearance,
   onChangeFolder,
-  onAppearance,
-  showSettings,
-  onToggleSettings
+  onAppearance
 }: Props): React.JSX.Element {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
 
@@ -67,7 +63,7 @@ export default function Sidebar({
         ))}
       </nav>
       <div className="mt-auto flex flex-col gap-2.5 max-desk:mt-0 max-desk:w-full max-desk:flex-row max-desk:flex-wrap max-desk:items-center">
-        <div className="inline-flex items-center gap-2 px-2 text-[13px] text-muted">
+        <div className="inline-flex items-center gap-2 px-2 text-[13px]">
           <span className={cx('size-2 rounded-full', running ? 'bg-ok' : 'bg-faint')} />
           {running ? 'Running' : 'Stopped'}
         </div>
@@ -76,19 +72,19 @@ export default function Sidebar({
             type="button"
             title={folder}
             onClick={onChangeFolder}
-            className="mx-1 inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-line bg-raised px-2.5 py-1.5 text-[12px] text-muted hover:bg-hover hover:text-ink"
+            className="mx-1 inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-line bg-raised px-2.5 py-1.5 text-[12px] hover:bg-hover"
           >
             <FolderIcon />
             <span className="truncate">{shortPath(folder)}</span>
           </button>
         )}
         <div className="flex items-center justify-between gap-1">
-          <Button variant="ghost" active={showSettings} onClick={onToggleSettings}>
+          <Button variant="ghost" active={page === 'settings'} onClick={() => onPage('settings')}>
             Settings
           </Button>
           <button
             type="button"
-            className="rounded-full p-2 text-muted hover:bg-hover hover:text-ink"
+            className="rounded-full p-2 hover:bg-hover"
             aria-label={dark ? 'Switch to light appearance' : 'Switch to dark appearance'}
             title={appearance === 'system' ? 'Appearance follows system' : appearance}
             onClick={toggleAppearance}

@@ -4,6 +4,12 @@ A desktop control panel for the official [Causeway](https://www.netcore.network/
 
 This app does not replace the CLI. You still download Causeway from NetcoreNetwork, unzip it, and point the app at that folder.
 
+## Downloads
+
+<!-- release-downloads:start -->
+No production build has been published yet. Push to the `production` branch to build macOS and Windows installers.
+<!-- release-downloads:end -->
+
 ## Requirements
 
 - Node.js 22 or later
@@ -57,3 +63,45 @@ npm run build:unpack # unpacked app in release/
 ```
 
 Installers land in `release/`.
+
+## Publishing a release
+
+Every push to `production` builds a macOS arm64 DMG and a Windows x64 installer, uploads those two files to Cloudflare R2, deletes any older files in that folder, and updates the Downloads section on `main`.
+
+### 1. Create an R2 bucket
+
+1. In Cloudflare, create an R2 bucket (for example `causeway-desktop`).
+2. Enable public access with a custom domain, or turn on the r2.dev public URL for testing. Custom domains are better for real downloads; r2.dev can throttle.
+3. Create an R2 API token with **Object Read & Write** on that bucket.
+
+### 2. Add GitHub secrets
+
+Repository settings → Secrets and variables → Actions:
+
+| Secret | Value |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | R2 API token access key |
+| `R2_SECRET_ACCESS_KEY` | R2 API token secret |
+| `R2_BUCKET_NAME` | Bucket name |
+| `R2_PUBLIC_BASE_URL` | Public origin with no trailing slash, such as `https://downloads.example.com` or `https://pub-….r2.dev` |
+
+Installers are stored as:
+
+- `{R2_PUBLIC_BASE_URL}/desktop/Causeway-Desktop-macOS-arm64.dmg`
+- `{R2_PUBLIC_BASE_URL}/desktop/Causeway-Desktop-Windows-x64-Setup.exe`
+
+Those names stay the same. Each release overwrites them and removes any other objects under `desktop/`.
+
+### 3. Push production
+
+```sh
+git checkout main
+git pull
+git checkout -b production
+git push -u origin production
+```
+
+Later releases: bump `version` in `package.json`, merge to `production`, and push. The workflow then rebuilds, replaces the R2 files, and commits the new download links to `main`.
+
+macOS and Windows builds are unsigned until signing certificates are added, so Gatekeeper and SmartScreen will warn on first open.

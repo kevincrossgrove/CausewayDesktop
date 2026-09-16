@@ -1,0 +1,235 @@
+name: Release production
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  MAC_FILE: Causeway-Desktop-macOS-arm64.dmg
+  WIN_FILE: Causeway-Desktop-Windows-x64-Setup.exe
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install and build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm ci
+          npx electron-vite build
+          npx electron-builder --mac --arm64 --publish never
+
+      - name: Prepare installer
+        id: meta
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          mkdir -p dist-upload
+          py="$(command -v python3 || command -v python)"
+          "$py" - <<'PY'
+          import os
+          import shutil
+          import sys
+          from pathlib import Path
+
+          files = [p for p in Path("release").rglob("*") if p.suffix == ".dmg"]
+          if not files:
+              print("No macOS .dmg found under release/", file=sys.stderr)
+              for path in sorted(Path("release").rglob("*")):
+                  if path.is_file():
+                      print(path)
+              sys.exit(1)
+
+          dest = Path("dist-upload") / os.environ["MAC_FILE"]
+          shutil.copy(files[0], dest)
+          print(f"Using {files[0]} as {dest.name}")
+          PY
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          ls -lh "dist-upload/${MAC_FILE}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist-upload/${{ env.MAC_FILE }}
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install and build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm ci
+          npm run typecheck
+          npx electron-vite build
+          npx electron-builder --win --x64 --publish never
+
+      - name: Prepare installer
+        run: |
+          set -euo pipefail
+          mkdir -p dist-upload
+          py="$(command -v python3 || command -v python)"
+          "$py" - <<'PY'
+          import os
+          import shutil
+          import sys
+          from pathlib import Path
+
+          files = [
+              p
+              for p in Path("release").rglob("*")
+              if p.name.endswith("windows-x64-setup.exe")
+          ]
+          if not files:
+              print("No Windows installer found under release/", file=sys.stderr)
+              for path in sorted(Path("release").rglob("*")):
+                  if path.is_file():
+                      print(path)
+              sys.exit(1)
+
+          dest = Path("dist-upload") / os.environ["WIN_FILE"]
+          shutil.copy(files[0], dest)
+          print(f"Using {files[0]} as {dest.name}")
+          PY
+          ls -lh "dist-upload/${WIN_FILE}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist-upload/${{ env.WIN_FILE }}
+          if-no-files-found: error
+
+  publish:
+    name: Upload latest and update README
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.build-macos.outputs.version }}
+    steps:
+      - name: Check R2 secrets
+        run: |
+          set -euo pipefail
+          : "${CLOUDFLARE_ACCOUNT_ID:?Missing secret CLOUDFLARE_ACCOUNT_ID}"
+          : "${R2_ACCESS_KEY_ID:?Missing secret R2_ACCESS_KEY_ID}"
+          : "${R2_SECRET_ACCESS_KEY:?Missing secret R2_SECRET_ACCESS_KEY}"
+          : "${R2_BUCKET_NAME:?Missing secret R2_BUCKET_NAME}"
+          : "${R2_PUBLIC_BASE_URL:?Missing secret R2_PUBLIC_BASE_URL}"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-src
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload installers to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          endpoint="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          mkdir -p publish
+          cp "artifacts/macos/${MAC_FILE}" "publish/${MAC_FILE}"
+          cp "artifacts/windows/${WIN_FILE}" "publish/${WIN_FILE}"
+          python3 - <<PY
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          payload = {
+              "version": "${VERSION}",
+              "releasedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "files": {
+                  "macos": "${MAC_FILE}",
+                  "windows": "${WIN_FILE}",
+              },
+          }
+          Path("publish/latest.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          PY
+          ls -lh publish
+          aws s3 sync publish/ "s3://${R2_BUCKET_NAME}/desktop/" \
+            --endpoint-url "$endpoint" \
+            --delete \
+            --cache-control "no-cache" \
+            --no-progress
+          echo "Uploaded latest v${VERSION} and removed any other files under desktop/"
+
+      - name: Update README on main
+        env:
+          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
+        run: |
+          set -euo pipefail
+          base="${R2_PUBLIC_BASE_URL%/}"
+          mac_url="${base}/desktop/${MAC_FILE}"
+          win_url="${base}/desktop/${WIN_FILE}"
+          date_label="$(date -u +'%-d %B %Y')"
+          cd main-repo
+          python3 ../workflow-src/scripts/update-readme-downloads.py \
+            "$VERSION" \
+            "$date_label" \
+            "$mac_url" \
+            "$win_url"
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "README on main already matches v${VERSION}."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "$(cat <<EOF
+          Update downloads to ${VERSION}.
+
+          EOF
+          )"
+          git push origin main

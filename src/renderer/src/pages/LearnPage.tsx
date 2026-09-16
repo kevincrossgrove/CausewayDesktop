@@ -85,13 +85,13 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
 
       <section>
         <h3 className="m-0 text-[15px] font-semibold">How the pieces fit</h3>
-        <p className="mt-3 mb-3 max-w-[62ch] text-[15px] leading-relaxed text-muted">
+        <p className="mt-3 mb-3 max-w-[62ch] text-[15px] leading-relaxed">
           Each computer running Causeway has a NetcoreNetwork ID. You exchange IDs, add each other as
           peers, and map ports. A service that listens on the other machine then appears on localhost
           here. Coordination uses a distributed key-value store. Relays are only a fallback when a
           direct path is blocked.
         </p>
-        <p className="m-0 max-w-[62ch] text-[15px] leading-relaxed text-muted">
+        <p className="m-0 max-w-[62ch] text-[15px] leading-relaxed">
           Keep the Causeway state file private. This app stores it in the application data folder, not
           in the connected install folder, so a Terminal daemon and this app do not share an identity.
           This UI never shows private keys.
@@ -104,10 +104,10 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
           {commands.map((command) => (
             <article key={command.usage}>
               <h3 className="m-0 text-[15px] font-semibold">{command.title}</h3>
-              <code className="mt-2 block overflow-x-auto rounded-xl border border-line bg-bg px-3.5 py-2.5 font-mono text-[13px] text-muted">
+              <code className="mt-2 block overflow-x-auto rounded-xl border border-line bg-bg px-3.5 py-2.5 font-mono text-[13px]">
                 {command.usage}
               </code>
-              <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed text-muted">{command.body}</p>
+              <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed">{command.body}</p>
             </article>
           ))}
         </div>
@@ -115,7 +115,7 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
 
       <section>
         <h3 className="m-0 text-[15px] font-semibold">Environment and state</h3>
-        <p className="mt-3 mb-0 max-w-[62ch] text-sm leading-relaxed text-muted">
+        <p className="mt-3 mb-0 max-w-[62ch] text-sm leading-relaxed">
           <code>CWP2P_STATE</code> selects the JSON state file. <code>CWP2P_SOCKET</code> selects the
           command socket. This app sets both under its own application data directory.{' '}
           <code>CWP2P_TURN_PASSWORD</code> can override the built-in TURN password on a fresh or

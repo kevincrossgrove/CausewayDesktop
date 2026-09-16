@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { AppSnapshot, LogLevel } from '@shared/types'
-import { AppearancePicker, Button, controlClass, Field } from '../ui'
+import { AppearancePicker, Button, controlClass, Field, PageHeader } from '../ui'
 
 const levels: LogLevel[] = ['fatal', 'error', 'warning', 'info', 'debug', 'verbose']
 
-export default function SettingsPanel({
+export default function SettingsPage({
   snapshot,
   onChange
 }: {
@@ -14,20 +14,29 @@ export default function SettingsPanel({
   const [bindAddress, setBindAddress] = useState(snapshot.settings.bindAddress)
 
   return (
-    <section className="mb-8 rounded-2xl border border-line bg-raised/70 p-5">
-      <h2 className="m-0 text-[1.35rem] font-bold tracking-tight">Settings</h2>
-      <p className="mt-2 mb-5 max-w-[52ch] text-sm leading-relaxed text-muted">
-        Appearance defaults to Light. Bind address and log level match{' '}
-        <code>--bind-address</code> and <code>--log-level</code>. Restart Causeway after changing those.
-      </p>
-      <div className="flex flex-col gap-5">
-        <div>
-          <p className="mb-2 text-[13px] text-muted">Appearance</p>
-          <AppearancePicker
-            value={snapshot.settings.appearance}
-            onChange={(appearance) => void window.causeway.setAppearance(appearance).then(onChange)}
-          />
-        </div>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Settings"
+        description="Appearance, bind address, and log level for this app and the Causeway daemon."
+      />
+
+      <section>
+        <h3 className="m-0 text-[15px] font-semibold">Appearance</h3>
+        <p className="mt-1.5 mb-4 text-sm leading-relaxed">
+          Choose light, dark, or follow the system.
+        </p>
+        <AppearancePicker
+          value={snapshot.settings.appearance}
+          onChange={(appearance) => void window.causeway.setAppearance(appearance).then(onChange)}
+        />
+      </section>
+
+      <section>
+        <h3 className="m-0 text-[15px] font-semibold">Daemon</h3>
+        <p className="mt-1.5 mb-4 text-sm leading-relaxed">
+          Bind address and log level match <code>--bind-address</code> and <code>--log-level</code>.
+          Restart Causeway after changing those.
+        </p>
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Bind address">
             <input
@@ -53,7 +62,7 @@ export default function SettingsPanel({
             </select>
           </Field>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   )
 }

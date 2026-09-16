@@ -64,7 +64,7 @@ export default function PortsPage({
       <form className="flex flex-col gap-4" onSubmit={(event) => void addMapping(event)}>
         <div>
           <h3 className="m-0 text-[15px] font-semibold">Open a mapping</h3>
-          <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed text-muted">
+          <p className="mt-2 mb-0 max-w-[62ch] text-sm leading-relaxed">
             A mapping is <code>local-port:remote-port</code>. This computer listens on the local port
             and forwards that TCP traffic to the remote port on the peer. Example: <code>8080:80</code>{' '}
             means you open <code>http://127.0.0.1:8080</code> and Causeway sends it to port 80 on the
@@ -95,7 +95,7 @@ export default function PortsPage({
             Add mapping
           </Button>
         </div>
-        <p className="m-0 text-sm text-muted">
+        <p className="m-0 text-sm">
           Local ports must be unique across every peer. You can add a peer first and open ports later.
         </p>
         {error && <Notice>{error}</Notice>}
@@ -122,7 +122,7 @@ export default function PortsPage({
 
       <section>
         {snapshot.peers.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line px-7 py-10 text-center text-sm text-muted">
+          <div className="rounded-2xl border border-dashed border-line px-7 py-10 text-center text-sm">
             Add a peer before opening ports.
           </div>
         ) : (
@@ -142,7 +142,7 @@ export default function PortsPage({
                     ? [
                         <tr key={`${item.name}-none`}>
                           <td className={tdClass}>{item.name}</td>
-                          <td colSpan={3} className={`${tdClass} text-muted`}>
+                          <td colSpan={3} className={tdClass}>
                             No mappings yet
                           </td>
                         </tr>
@@ -178,7 +178,7 @@ export default function PortsPage({
 
       <form onSubmit={(event) => void addAllowList(event)}>
         <h3 className="m-0 text-[15px] font-semibold">Allow a local port</h3>
-        <p className="mt-2 mb-4 max-w-[52ch] text-sm leading-relaxed text-muted">
+        <p className="mt-2 mb-4 max-w-[52ch] text-sm leading-relaxed">
           WireGuard mode uses <code>cwp2p port add</code> as an allow-list. DataChannel mappings do not
           need this.
         </p>
@@ -195,7 +195,7 @@ export default function PortsPage({
           <Button disabled={dataChannels || !snapshot.daemon.running}>Allow port</Button>
         </div>
         {dataChannels && (
-          <p className="mt-3 mb-0 text-sm text-muted">You are in DataChannel mode, so this allow-list is skipped.</p>
+          <p className="mt-3 mb-0 text-sm">You are in DataChannel mode, so this allow-list is skipped.</p>
         )}
       </form>
     </div>

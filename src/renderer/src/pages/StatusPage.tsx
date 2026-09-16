@@ -87,7 +87,7 @@ export default function StatusPage({
     <div className="flex flex-col gap-10">
       <div className="flex flex-col items-start justify-between gap-5 @min-[640px]:flex-row">
         <div>
-          <div className="mb-3 flex items-center gap-2 text-[13px] text-muted">
+          <div className="mb-3 flex items-center gap-2 text-[13px]">
             <span
               className={cx(
                 'size-2 rounded-full',
@@ -97,7 +97,7 @@ export default function StatusPage({
             {statusLabel}
           </div>
           <h2 className="m-0 text-[2.6rem] font-bold leading-none tracking-tight">{headline}</h2>
-          <p className="mt-4 mb-0 max-w-[40ch] text-[15px] leading-relaxed text-muted">
+          <p className="mt-4 mb-0 max-w-[40ch] text-[15px] leading-relaxed">
             Start it to get an ID you can share. The other person adds you with it, and you add them
             the same way.
           </p>
@@ -159,7 +159,7 @@ export default function StatusPage({
 
       <section>
         <h3 className="m-0 text-[15px] font-semibold">Your NetcoreNetwork ID</h3>
-        <p className="mt-1.5 mb-0 text-sm leading-relaxed text-muted">
+        <p className="mt-1.5 mb-0 text-sm leading-relaxed">
           Give this to anyone who should add you as a peer.
         </p>
         <div className="mt-4 flex min-w-0 items-center overflow-hidden rounded-xl border border-line bg-bg">
@@ -177,14 +177,14 @@ export default function StatusPage({
           </div>
         </div>
         {!localId && (
-          <p className="mt-2 mb-0 text-sm text-muted">Appears once Causeway is running.</p>
+          <p className="mt-2 mb-0 text-sm">Appears once Causeway is running.</p>
         )}
       </section>
 
       <section className="flex flex-col gap-4 @min-[760px]:flex-row @min-[760px]:items-start">
         <div className="w-[13.5rem] shrink-0">
           <h3 className="m-0 text-[15px] font-semibold">Add-me command</h3>
-          <p className="mt-1.5 mb-0 text-sm leading-relaxed text-muted">
+          <p className="mt-1.5 mb-0 text-sm leading-relaxed">
             They run this on their machine to add you.
           </p>
         </div>
@@ -201,7 +201,12 @@ export default function StatusPage({
             />
           </SplitControl>
           <div className="flex min-w-0 items-center overflow-hidden rounded-xl border border-line bg-bg">
-            <code className="min-w-0 flex-1 truncate bg-transparent px-3.5 py-2.5 text-[13px] text-muted">
+            <code
+              className={cx(
+                'min-w-0 flex-1 truncate bg-transparent px-3.5 py-2.5 font-mono text-[13px]',
+                addPeerCommand ? 'text-ink' : 'text-faint'
+              )}
+            >
               {addPeerCommand || 'Start Causeway to build this command.'}
             </code>
             <div className="pr-1.5">
