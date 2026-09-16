@@ -7,13 +7,17 @@ This app does not replace the CLI. You still download Causeway from NetcoreNetwo
 ## Downloads
 
 <!-- release-downloads:start -->
-No production build has been published yet. Push to the `production` branch to build installers.
+Latest version: **0.1.0** (16 September 2026).
 
-After that, macOS install will be a copyable Terminal command:
+**macOS** — copy and paste this in Terminal. A browser download of the DMG will look damaged.
 
 ```
-curl -fsSL '<R2_PUBLIC_BASE_URL>/desktop/install-macos.sh' | sh
+curl -fsSL 'https://pub-192a293c22d049059ca1e5e42b63f523.r2.dev/desktop/install-macos.sh' | sh
 ```
+
+**Windows** — [Causeway-Desktop-Windows-x64-Setup.exe](https://pub-192a293c22d049059ca1e5e42b63f523.r2.dev/desktop/Causeway-Desktop-Windows-x64-Setup.exe)
+
+These files are the current production build. Older installers are removed when a new one is published.
 <!-- release-downloads:end -->
 
 ## Requirements
