@@ -7,7 +7,12 @@ This app does not replace the CLI. You still download Causeway from NetcoreNetwo
 ## Downloads
 
 <!-- release-downloads:start -->
-No production build has been published yet. Push to the `production` branch to build macOS and Windows installers.
+Latest version: **0.1.0** (16 September 2026).
+
+- [macOS arm64 (.dmg)](https://pub-192a293c22d049059ca1e5e42b63f523.r2.dev/desktop/Causeway-Desktop-macOS-arm64.dmg)
+- [Windows x64 (.exe)](https://pub-192a293c22d049059ca1e5e42b63f523.r2.dev/desktop/Causeway-Desktop-Windows-x64-Setup.exe)
+
+These files are the current production build. Older installers are removed when a new one is published.
 <!-- release-downloads:end -->
 
 ## Requirements
