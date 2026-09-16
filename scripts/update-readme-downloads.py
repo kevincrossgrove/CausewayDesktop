@@ -12,14 +12,14 @@ MARKER_END = "<!-- release-downloads:end -->"
 
 
 def main() -> int:
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print(
-            "usage: update-readme-downloads.py VERSION DATE MAC_URL WIN_URL",
+            "usage: update-readme-downloads.py VERSION DATE MAC_URL WIN_URL INSTALL_URL",
             file=sys.stderr,
         )
         return 2
 
-    version, date, mac_url, win_url = sys.argv[1:]
+    version, date, mac_url, win_url, install_url = sys.argv[1:]
     readme_path = pathlib.Path("README.md")
     text = readme_path.read_text(encoding="utf-8")
     block = "\n".join(
@@ -27,8 +27,13 @@ def main() -> int:
             MARKER_START,
             f"Latest version: **{version}** ({date}).",
             "",
-            f"- [macOS arm64 (.dmg)]({mac_url})",
-            f"- [Windows x64 (.exe)]({win_url})",
+            "**macOS** — copy and paste this in Terminal. A browser download of the DMG will look damaged.",
+            "",
+            "```",
+            f"curl -fsSL '{install_url}' | sh",
+            "```",
+            "",
+            f"**Windows** — [{win_url.rsplit('/', 1)[-1]}]({win_url})",
             "",
             "These files are the current production build. Older installers are removed when a new one is published.",
             MARKER_END,

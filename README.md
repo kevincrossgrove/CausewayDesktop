@@ -7,7 +7,13 @@ This app does not replace the CLI. You still download Causeway from NetcoreNetwo
 ## Downloads
 
 <!-- release-downloads:start -->
-No production build has been published yet. Push to the `production` branch to build macOS and Windows installers.
+No production build has been published yet. Push to the `production` branch to build installers.
+
+After that, macOS install will be a copyable Terminal command:
+
+```
+curl -fsSL '<R2_PUBLIC_BASE_URL>/desktop/install-macos.sh' | sh
+```
 <!-- release-downloads:end -->
 
 ## Requirements
@@ -104,4 +110,26 @@ git push -u origin production
 
 Later releases: bump `version` in `package.json`, merge to `production`, and push. The workflow then rebuilds, replaces the R2 files, and commits the new download links to `main`.
 
-macOS and Windows builds are unsigned until signing certificates are added, so Gatekeeper and SmartScreen will warn on first open.
+### 4. Optional: sign the Mac app
+
+Browser downloads of an unsigned Mac app look **damaged**. People can still install without Apple signing by using the Terminal command in Downloads (`curl … | sh`). That path skips Gatekeeper quarantine.
+
+Signing is only needed if you want a DMG people can open from Safari or Chrome. That takes an [Apple Developer Program](https://developer.apple.com/programs/) membership ($99/year), a Developer ID Application certificate, and notarization.
+
+1. In [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/certificates/list), create a **Developer ID Application** certificate. Install it in Keychain on a Mac.
+2. In Keychain Access, export **Developer ID Application: Your Name** as a `.p12` and choose a password.
+3. Encode it: `base64 -i Certificates.p12 | pbcopy`
+4. At [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords, create a password for notarization.
+5. Copy your 10-character Team ID from [developer.apple.com/account](https://developer.apple.com/account) (Membership details).
+
+Add GitHub Actions secrets:
+
+| Secret | Value |
+| --- | --- |
+| `CSC_LINK` | Base64 of the `.p12` file |
+| `CSC_KEY_PASSWORD` | Password you set when exporting the `.p12` |
+| `APPLE_ID` | Apple ID email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password |
+| `APPLE_TEAM_ID` | 10-character team ID |
+
+Windows SmartScreen may still warn on first open. That warning is skippable.

@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   MAC_FILE: Causeway-Desktop-macOS-arm64.dmg
   WIN_FILE: Causeway-Desktop-Windows-x64-Setup.exe
 
@@ -31,10 +31,20 @@ jobs:
 
       - name: Install and build
         env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: |
           npm ci
           npx electron-vite build
+          if [ -n "${CSC_LINK:-}" ]; then
+            echo "Signing with Developer ID certificate"
+          else
+            echo "No CSC_LINK secret; Mac build will be ad-hoc signed and Gatekeeper will block downloads"
+          fi
           npx electron-builder --mac --arm64 --publish never
 
       - name: Prepare installer
@@ -177,12 +187,24 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
         run: |
           set -euo pipefail
           endpoint="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          base="${R2_PUBLIC_BASE_URL%/}"
+          mac_url="${base}/desktop/${MAC_FILE}"
           mkdir -p publish
           cp "artifacts/macos/${MAC_FILE}" "publish/${MAC_FILE}"
           cp "artifacts/windows/${WIN_FILE}" "publish/${WIN_FILE}"
+          python3 - <<PY
+          from pathlib import Path
+          template = Path("workflow-src/scripts/install-macos.sh").read_text(encoding="utf-8")
+          Path("publish/install-macos.sh").write_text(
+              template.replace("__MAC_DMG_URL__", "${mac_url}"),
+              encoding="utf-8",
+          )
+          PY
+          chmod +x publish/install-macos.sh
           python3 - <<PY
           import json
           from datetime import datetime, timezone
@@ -193,6 +215,7 @@ jobs:
               "files": {
                   "macos": "${MAC_FILE}",
                   "windows": "${WIN_FILE}",
+                  "macosInstall": "install-macos.sh",
               },
           }
           Path("publish/latest.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -201,6 +224,11 @@ jobs:
           aws s3 sync publish/ "s3://${R2_BUCKET_NAME}/desktop/" \
             --endpoint-url "$endpoint" \
             --delete \
+            --cache-control "no-cache" \
+            --no-progress
+          aws s3 cp publish/install-macos.sh "s3://${R2_BUCKET_NAME}/desktop/install-macos.sh" \
+            --endpoint-url "$endpoint" \
+            --content-type "text/plain; charset=utf-8" \
             --cache-control "no-cache" \
             --no-progress
           echo "Uploaded latest v${VERSION} and removed any other files under desktop/"
@@ -219,7 +247,8 @@ jobs:
             "$VERSION" \
             "$date_label" \
             "$mac_url" \
-            "$win_url"
+            "$win_url" \
+            "${base}/desktop/install-macos.sh"
           git add README.md
           if git diff --cached --quiet; then
             echo "README on main already matches v${VERSION}."

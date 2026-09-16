@@ -24,6 +24,7 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+afterPack: scripts/ad-hoc-sign-mac.cjs
 mac:
   icon: build/icon.png
   target:
@@ -31,12 +32,15 @@ mac:
       arch:
         - arm64
   category: public.app-category.utilities
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
     - NSDownloadsFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
     - NSDesktopFolderUsageDescription: Causeway Desktop needs folder access so you can connect the unzipped Causeway CLI.
-  notarize: false
+  notarize: true
 dmg:
   artifactName: ${name}-${version}-mac-arm64.${ext}
 npmRebuild: false
