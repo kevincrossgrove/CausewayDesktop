@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Appearance, PageId } from '@shared/types'
 import { applyAppearance } from '../theme'
-import { BrandMark, Button, cx, FolderIcon, MoonIcon, shortPath, SunIcon } from '../ui'
+import { BrandMark, FolderIcon, MoonIcon, shortPath, SunIcon, cn } from '../ui'
+import { Button } from '@/components/ui/button'
 
 const items: { id: PageId; label: string }[] = [
   { id: 'status', label: 'Status' },
   { id: 'peers', label: 'Peers' },
   { id: 'ports', label: 'Ports' },
   { id: 'connection', label: 'Connection' },
+  { id: 'terminal', label: 'Terminal' },
   { id: 'learn', label: 'Learn' }
 ]
 
@@ -54,8 +56,11 @@ export default function Sidebar({
           <Button
             key={item.id}
             variant="ghost"
-            className="desk:w-full"
-            active={page === item.id}
+            className={cn(
+              'h-auto justify-start rounded-none px-3 py-2.5 text-[15px] desk:w-full',
+              page === item.id &&
+                'font-semibold underline decoration-burgundy decoration-2 underline-offset-10'
+            )}
             onClick={() => onPage(item.id)}
           >
             {item.label}
@@ -64,7 +69,7 @@ export default function Sidebar({
       </nav>
       <div className="mt-auto flex flex-col gap-2.5 max-desk:mt-0 max-desk:w-full max-desk:flex-row max-desk:flex-wrap max-desk:items-center">
         <div className="inline-flex items-center gap-2 px-2 text-[13px]">
-          <span className={cx('size-2 rounded-full', running ? 'bg-ok' : 'bg-faint')} />
+          <span className={cn('size-2 rounded-full', running ? 'bg-ok' : 'bg-faint')} />
           {running ? 'Running' : 'Stopped'}
         </div>
         {folder && (
@@ -79,7 +84,15 @@ export default function Sidebar({
           </button>
         )}
         <div className="flex items-center justify-between gap-1">
-          <Button variant="ghost" active={page === 'settings'} onClick={() => onPage('settings')}>
+          <Button
+            variant="ghost"
+            className={cn(
+              'h-auto rounded-none px-3 py-2.5 text-[15px]',
+              page === 'settings' &&
+                'font-semibold underline decoration-burgundy decoration-2 underline-offset-10'
+            )}
+            onClick={() => onPage('settings')}
+          >
             Settings
           </Button>
           <button

@@ -14,6 +14,7 @@ export function runCausewayCommand(options: {
     const child = spawn(binaryPath, args, {
       cwd: folder,
       env,
+      stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true
     })
 
@@ -28,7 +29,10 @@ export function runCausewayCommand(options: {
     }
 
     const timer = setTimeout(() => {
-      child.kill()
+      child.kill('SIGTERM')
+      setTimeout(() => {
+        if (child.exitCode === null && !child.killed) child.kill('SIGKILL')
+      }, 1500)
       finish({
         ok: false,
         stdout,

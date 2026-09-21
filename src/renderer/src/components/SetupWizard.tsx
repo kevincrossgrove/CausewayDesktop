@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { AppSnapshot, FolderConnectResult } from '@shared/types'
-import { AppearancePicker, BrandMark, Button, Card, CardLabel } from '../ui'
+import { AppearancePicker, BrandMark } from '../ui'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type Props = {
   snapshot: AppSnapshot
@@ -117,14 +119,14 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
 
         <div className="flex flex-col gap-2">
           <Button
-            variant="primary"
-            className="w-full px-4 py-2.5 sm:w-auto"
+            className="w-full sm:w-auto"
             onClick={() => void window.causeway.openExternal(snapshot.downloadUrl)}
           >
             Download Causeway
           </Button>
           <Button
-            className="w-full px-4 py-2.5 sm:w-auto"
+            variant="outline"
+            className="w-full sm:w-auto"
             onClick={() => void window.causeway.openExternal(snapshot.learnUrl)}
           >
             Learn about NetcoreNetwork
@@ -154,21 +156,25 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
         </div>
 
         {snapshot.candidateFolders.length > 0 && (
-          <Card className="flex flex-col gap-3">
-            <CardLabel>Found on this computer</CardLabel>
-            {snapshot.candidateFolders.map((folder) => (
-              <div key={folder} className="flex flex-wrap items-center justify-between gap-2.5">
-                <code className="break-all">{folder}</code>
-                <Button variant="primary" disabled={busy} onClick={() => void connectKnown(folder)}>
-                  Connect this folder
-                </Button>
-              </div>
-            ))}
+          <Card>
+            <CardHeader>
+              <CardTitle>Found on this computer</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {snapshot.candidateFolders.map((folder) => (
+                <div key={folder} className="flex flex-wrap items-center justify-between gap-2.5">
+                  <code className="break-all">{folder}</code>
+                  <Button disabled={busy} onClick={() => void connectKnown(folder)}>
+                    Connect this folder
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
           </Card>
         )}
 
         <div>
-          <Button variant="primary" className="px-4 py-2.5" disabled={busy} onClick={() => void pickFolder()}>
+          <Button disabled={busy} onClick={() => void pickFolder()}>
             {busy ? 'Connecting…' : snapshot.candidateFolders.length > 0 ? 'Connect a different folder' : 'Connect a folder…'}
           </Button>
         </div>
@@ -180,14 +186,18 @@ export default function SetupWizard({ snapshot, onConnected }: Props): React.JSX
         )}
 
         <Card>
-          <CardLabel>{setupVideoTitle}</CardLabel>
-          <iframe
-            className="mt-1 aspect-video w-full rounded-[10px] border-0 bg-[#12110f]"
-            src={`https://www.youtube-nocookie.com/embed/${setupVideoId}`}
-            title={setupVideoTitle}
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <CardHeader>
+            <CardTitle>{setupVideoTitle}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <iframe
+              className="aspect-video w-full rounded-[10px] border-0 bg-[#12110f]"
+              src={`https://www.youtube-nocookie.com/embed/${setupVideoId}`}
+              title={setupVideoTitle}
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </CardContent>
         </Card>
       </section>
     </div>

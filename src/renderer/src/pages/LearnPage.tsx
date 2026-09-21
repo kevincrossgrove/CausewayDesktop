@@ -1,5 +1,6 @@
 import type { AppSnapshot } from '@shared/types'
-import { Button, PageHeader } from '../ui'
+import { PageHeader } from '../ui'
+import { Button } from '@/components/ui/button'
 
 const commands = [
   {
@@ -15,7 +16,7 @@ const commands = [
   {
     title: 'peer add',
     usage: 'cwp2p peer add <name> <peer ID> [<local-port:remote-port>,...]',
-    body: 'Adds one uniquely named peer by 64-character lowercase hex ID. Optional TCP mappings. You cannot add your own ID. The connection is established even without mappings.'
+    body: 'Adds one uniquely named peer by 64-character lowercase hex ID. Optional TCP mappings belong on the computer that wants the app, for example 3000:3000. You cannot add your own ID. The connection is established even without mappings.'
   },
   {
     title: 'peer list',
@@ -30,7 +31,7 @@ const commands = [
   {
     title: 'peer port add',
     usage: 'cwp2p peer port add <peer ID|name> <local-port:remote-port>',
-    body: 'Adds one TCP mapping. Local ports must be unique across all peers. Repeating an existing mapping succeeds without duplicating it.'
+    body: 'Adds one TCP mapping on this computer. This computer listens on the local port and forwards to the remote port on the peer. Do this on the computer that wants the app, not the one running it. Example: 3000:3000. Local ports must be unique across all peers. Repeating an existing mapping succeeds without duplicating it.'
   },
   {
     title: 'peer port remove',
@@ -40,7 +41,7 @@ const commands = [
   {
     title: 'port add',
     usage: 'cwp2p port add <port>',
-    body: 'Allows a local TCP port between 1 and 65535. DataChannel mappings do not require this allow-list.'
+    body: 'On the computer running the app, opens that local TCP port between 1 and 65535 for peers so a mapping can reach it. Skip this in DataChannel mode.'
   },
   {
     title: 'charge',
@@ -77,7 +78,7 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
         title="Learn"
         description="Causeway is the usable layer on NetcoreNetwork. NetcoreNetwork helps devices find and authenticate each other. After that, application data moves directly between the two machines."
         actions={
-          <Button onClick={() => void window.causeway.openExternal(snapshot.learnUrl)}>
+          <Button variant="outline" onClick={() => void window.causeway.openExternal(snapshot.learnUrl)}>
             netcore.network/learn
           </Button>
         }
@@ -87,9 +88,11 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
         <h3 className="m-0 text-[15px] font-semibold">How the pieces fit</h3>
         <p className="mt-3 mb-3 max-w-[62ch] text-[15px] leading-relaxed">
           Each computer running Causeway has a NetcoreNetwork ID. You exchange IDs, add each other as
-          peers, and map ports. A service that listens on the other machine then appears on localhost
-          here. Coordination uses a distributed key-value store. Relays are only a fallback when a
-          direct path is blocked.
+          peers, and then share localhost apps with port mappings. Example: an app on{' '}
+          <code>http://127.0.0.1:3000</code> stays on that computer. The other person adds mapping{' '}
+          <code>3000:3000</code> and opens the same URL. The computer running the app does not add
+          that mapping. Coordination uses a distributed key-value store. Relays are only a fallback
+          when a direct path is blocked.
         </p>
         <p className="m-0 max-w-[62ch] text-[15px] leading-relaxed">
           Keep the Causeway state file private. This app stores it in the application data folder, not
@@ -100,6 +103,10 @@ export default function LearnPage({ snapshot }: { snapshot: AppSnapshot }): Reac
 
       <section>
         <h2 className="mb-6 text-[1.65rem] font-bold tracking-tight">Every CLI command</h2>
+        <p className="mt-0 mb-6 max-w-[62ch] text-[15px] leading-relaxed">
+          You can type these in Terminal in this app. They run against the Causeway this app started,
+          the same way a second Terminal would.
+        </p>
         <div className="flex flex-col gap-6">
           {commands.map((command) => (
             <article key={command.usage}>

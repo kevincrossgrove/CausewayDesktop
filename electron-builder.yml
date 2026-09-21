@@ -12,6 +12,9 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - '**/*.woff2'
+  - '**/*.ttf'
+  - '**/*.otf'
 win:
   executableName: Causeway Desktop
   icon: build/icon.png

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-
-import { Button } from '../ui'
+import { Button } from '@/components/ui/button'
 
 export default function CopyButton({
   value,
@@ -20,7 +19,7 @@ export default function CopyButton({
   }
 
   return (
-    <Button onClick={() => void copy()} disabled={disabled || !value}>
+    <Button type="button" variant="outline" onClick={() => void copy()} disabled={disabled || !value}>
       {copied ? 'Copied' : label}
     </Button>
   )

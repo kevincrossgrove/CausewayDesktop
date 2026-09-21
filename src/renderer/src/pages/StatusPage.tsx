@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AppSnapshot } from '@shared/types'
 import CopyButton from '../components/CopyButton'
 import { isValidPeerName, sanitizePeerName } from '@shared/peerInput'
-import { Button, controlClass, cx, Notice, SplitControl, StatStrip } from '../ui'
+import { cn, Notice, SplitControl, StatStrip } from '../ui'
+import { Button } from '@/components/ui/button'
 
 function initialShareName(snapshot: AppSnapshot): string {
   return (
@@ -35,6 +36,7 @@ export default function StatusPage({
   const saveTimer = useRef<number | null>(null)
   shareNameRef.current = shareName
   const running = snapshot.daemon.running
+  const blockedByOther = snapshot.daemon.otherCwp2pPids.length > 0 && !running
   const starting = busy || snapshot.daemon.starting
   const localId = snapshot.status?.localId ?? null
   const safeName = isValidPeerName(shareName) ? shareName : fallbackName
@@ -80,8 +82,8 @@ export default function StatusPage({
     setBusy(false)
   }
 
-  const statusLabel = starting && !running ? 'Starting' : running ? 'Running' : 'Stopped'
-  const headline = running ? 'Causeway is on.' : 'Causeway is off.'
+  const statusLabel = starting && !running ? 'Starting' : running ? 'Running' : blockedByOther ? 'Running elsewhere' : 'Stopped'
+  const headline = running ? 'Causeway is on.' : blockedByOther ? 'Causeway is already running.' : 'Causeway is off.'
 
   return (
     <div className="flex flex-col gap-10">
@@ -89,7 +91,7 @@ export default function StatusPage({
         <div>
           <div className="mb-3 flex items-center gap-2 text-[13px]">
             <span
-              className={cx(
+              className={cn(
                 'size-2 rounded-full',
                 running ? 'bg-ok' : starting ? 'bg-warn' : 'bg-faint'
               )}
@@ -103,14 +105,20 @@ export default function StatusPage({
           </p>
         </div>
         {running ? (
-          <Button variant="danger" className="px-5 py-2.5" disabled={busy} onClick={() => void stop()}>
+          <Button
+            variant="destructive"
+            size="lg"
+            className="h-11 px-5 text-[15px]"
+            disabled={busy}
+            onClick={() => void stop()}
+          >
             Stop Causeway
           </Button>
         ) : (
           <Button
-            variant="primary"
-            className="px-5 py-2.5"
-            disabled={starting}
+            size="lg"
+            className="h-11 px-5 text-[15px]"
+            disabled={starting || blockedByOther}
             onClick={() => void start()}
           >
             {starting ? 'Starting…' : 'Start Causeway'}
@@ -118,8 +126,14 @@ export default function StatusPage({
         )}
       </div>
 
-      {(error || snapshot.daemon.lastError || snapshot.status?.recoveryWarning) && (
+      {(error || snapshot.daemon.lastError || snapshot.status?.recoveryWarning || blockedByOther) && (
         <div className="flex flex-col gap-1.5">
+          {blockedByOther && (
+            <Notice>
+              {snapshot.binaryName} is already running outside this app. Stop that process, then start
+              here.
+            </Notice>
+          )}
           {error && <Notice>{error}</Notice>}
           {snapshot.daemon.lastError && <Notice>{snapshot.daemon.lastError}</Notice>}
           {snapshot.status?.recoveryWarning && (
@@ -164,9 +178,9 @@ export default function StatusPage({
         </p>
         <div className="mt-4 flex min-w-0 items-center overflow-hidden rounded-xl border border-line bg-bg">
           <code
-            className={cx(
+            className={cn(
               'min-w-0 flex-1 truncate bg-transparent px-3.5 py-2.5 font-mono text-[13px] tracking-normal',
-              localId ? 'text-ink' : 'text-faint'
+              localId ? 'text-foreground' : 'text-faint'
             )}
             title={localId ?? undefined}
           >
@@ -191,7 +205,7 @@ export default function StatusPage({
         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
           <SplitControl label="Name they will see">
             <input
-              className={cx(controlClass, 'rounded-none border-0 bg-transparent py-2.5')}
+              className="h-8 w-full rounded-none border-0 bg-transparent px-3 text-sm outline-none"
               value={shareName}
               onChange={(event) => onShareNameChange(event.target.value)}
               onBlur={() => persistShareName(shareName)}
@@ -202,9 +216,9 @@ export default function StatusPage({
           </SplitControl>
           <div className="flex min-w-0 items-center overflow-hidden rounded-xl border border-line bg-bg">
             <code
-              className={cx(
+              className={cn(
                 'min-w-0 flex-1 truncate bg-transparent px-3.5 py-2.5 font-mono text-[13px]',
-                addPeerCommand ? 'text-ink' : 'text-faint'
+                addPeerCommand ? 'text-foreground' : 'text-faint'
               )}
             >
               {addPeerCommand || 'Start Causeway to build this command.'}

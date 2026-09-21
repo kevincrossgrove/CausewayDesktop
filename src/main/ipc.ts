@@ -14,7 +14,7 @@ import {
 } from '@shared/types'
 import { applyNativeAppearance } from './appearance'
 import { daemonManager } from './daemonManager'
-import { parseIdFromLogs, parsePeerList, parseStatus } from './parseCauseway'
+import { parseIdFromLogs, parseAllowedPorts, parseStatus, peersFromCli } from './parseCauseway'
 import {
   binaryName,
   foundCandidateFolders,
@@ -22,9 +22,18 @@ import {
   platformLabel,
   suggestedPeerName
 } from './platform'
-import { mappingsError, parseMappingList, peerIdError, peerNameError, sanitizePeerName } from '@shared/peerInput'
+import {
+  cliMappingArgs,
+  formatMapping,
+  mappingsError,
+  parseOneMapping,
+  peerIdError,
+  peerNameError,
+  sanitizePeerName
+} from '@shared/peerInput'
 import { listListeningTcpPorts } from './listListeningPorts'
 import { resolveCausewayInstall } from './resolveInstall'
+import { cliTimeoutMs, parseCwp2pLine } from '@shared/cwp2pCommand'
 import { runCausewayCommand } from './runCommand'
 import { loadSettings, saveSettings } from './settingsStore'
 
@@ -57,6 +66,14 @@ function isSocketNotReady(result: CommandResult): boolean {
 }
 
 async function runCli(args: string[], timeoutMs?: number): Promise<CommandResult> {
+  if (daemonManager.blockedByOtherCwp2p()) {
+    return {
+      ok: false,
+      stdout: '',
+      stderr: '',
+      error: 'Causeway is already running outside this app. Stop that process first.'
+    }
+  }
   const { folder, binaryPath } = await requireInstall()
   return runCausewayCommand({
     binaryPath,
@@ -77,6 +94,7 @@ async function runCliWhenReady(args: string[]): Promise<CommandResult> {
 }
 
 export async function buildSnapshot(): Promise<AppSnapshot> {
+  await daemonManager.refreshOtherCwp2pPids()
   const foundCandidates = foundCandidateFolders()
   const parsed = cachedStatusRaw ? parseStatus(cachedStatusRaw) : null
   const logId = parseIdFromLogs(daemonManager.getState().logs.join('\n'))
@@ -96,6 +114,8 @@ export async function buildSnapshot(): Promise<AppSnapshot> {
         }
       : null
 
+  const peers = peersFromCli(cachedPeersRaw, cachedStatusRaw)
+
   return {
     platform: process.platform,
     platformLabel: platformLabel(),
@@ -108,11 +128,12 @@ export async function buildSnapshot(): Promise<AppSnapshot> {
     daemon: daemonManager.getState(),
     status,
     statusRaw: cachedStatusRaw,
-    peers: cachedPeersRaw ? parsePeerList(cachedPeersRaw) : [],
+    peers,
     peersRaw: cachedPeersRaw,
     version: cachedVersion,
     candidateFolders: foundCandidates,
-    suggestedPeerName: suggestedPeerName() || 'my-computer'
+    suggestedPeerName: suggestedPeerName() || 'my-computer',
+    allowedPorts: parseAllowedPorts(cachedStatusRaw)
   }
 }
 
@@ -188,7 +209,8 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   ipcMain.handle('causeway:snapshot', async () => buildSnapshot())
 
   ipcMain.handle('causeway:open-external', async (_event, url: string) => {
-    if (url.startsWith('https://')) {
+    const local = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/i.test(url)
+    if (local || url.startsWith('https://')) {
       await shell.openExternal(url)
     }
   })
@@ -211,6 +233,16 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
 
   ipcMain.handle('causeway:connect-folder', async (_event, folder: string) => {
     return connectFolder(folder)
+  })
+
+  ipcMain.handle('causeway:unlink-folder', async () => {
+    await daemonManager.stop()
+    cachedStatusRaw = ''
+    cachedPeersRaw = ''
+    cachedVersion = null
+    settings = { ...settings, causewayFolder: null }
+    await saveSettings(settings)
+    return buildSnapshot()
   })
 
   ipcMain.handle('causeway:start', async () => {
@@ -286,7 +318,7 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
     const mappingProblem = mappingsError(mappings)
     if (mappingProblem) return { ok: false, stdout: '', stderr: '', error: mappingProblem }
     const args = ['peer', 'add', cleanName, peerId.trim().toLowerCase()]
-    if (mappings.trim()) args.push(parseMappingList(mappings).join(','))
+    if (mappings.trim()) args.push(cliMappingArgs(mappings).join(','))
     const result = await runCli(args)
     await refreshStatusAndPeers()
     return result
@@ -299,13 +331,31 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   })
 
   ipcMain.handle('causeway:peer-port-add', async (_event, idOrName: string, mapping: string) => {
-    const result = await runCli(['peer', 'port', 'add', idOrName.trim(), mapping.trim()])
+    const parsed = parseOneMapping(mapping)
+    if (!parsed) {
+      return {
+        ok: false,
+        stdout: '',
+        stderr: '',
+        error: 'Use local-port:remote-port, like 1111:11434.'
+      }
+    }
+    const result = await runCli(['peer', 'port', 'add', idOrName.trim(), formatMapping(parsed)])
     await refreshStatusAndPeers()
     return result
   })
 
   ipcMain.handle('causeway:peer-port-remove', async (_event, idOrName: string, mapping: string) => {
-    const result = await runCli(['peer', 'port', 'remove', idOrName.trim(), mapping.trim()])
+    const parsed = parseOneMapping(mapping)
+    if (!parsed) {
+      return {
+        ok: false,
+        stdout: '',
+        stderr: '',
+        error: 'That row is not a real mapping.'
+      }
+    }
+    const result = await runCli(['peer', 'port', 'remove', idOrName.trim(), formatMapping(parsed)])
     await refreshStatusAndPeers()
     return result
   })
@@ -317,6 +367,28 @@ export function registerIpc(getWindow: () => BrowserWindow | null): void {
   })
 
   ipcMain.handle('causeway:listening-ports', async () => listListeningTcpPorts())
+
+  ipcMain.handle('causeway:run-cli', async (_event, line: string) => {
+    if (typeof line !== 'string') {
+      return { ok: false, stdout: '', stderr: '', error: 'Type a cwp2p command.' } satisfies CommandResult
+    }
+    const parsed = parseCwp2pLine(line)
+    if (!parsed.ok) {
+      return { ok: false, stdout: '', stderr: '', error: parsed.error } satisfies CommandResult
+    }
+    try {
+      const result = await runCli(parsed.args, cliTimeoutMs(parsed.args))
+      await refreshStatusAndPeers()
+      return result
+    } catch (error) {
+      return {
+        ok: false,
+        stdout: '',
+        stderr: '',
+        error: error instanceof Error ? error.message : String(error)
+      } satisfies CommandResult
+    }
+  })
 
   daemonManager.onChange(() => broadcastSnapshot(getWindow()))
 }

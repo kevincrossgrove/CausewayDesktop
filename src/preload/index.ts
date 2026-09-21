@@ -15,6 +15,7 @@ export type CausewayApi = {
   openExternal: (url: string) => Promise<void>
   pickFolder: () => Promise<FolderConnectResult>
   connectFolder: (folder: string) => Promise<FolderConnectResult>
+  unlinkFolder: () => Promise<AppSnapshot>
   start: () => Promise<{ ok: boolean; error?: string }>
   stop: () => Promise<{ ok: boolean }>
   refresh: () => Promise<AppSnapshot>
@@ -29,6 +30,7 @@ export type CausewayApi = {
   removePeerPort: (idOrName: string, mapping: string) => Promise<CommandResult>
   addAllowedPort: (port: string) => Promise<CommandResult>
   listeningPorts: () => Promise<ListeningPort[]>
+  runCli: (line: string) => Promise<CommandResult>
 }
 
 const api: CausewayApi = {
@@ -41,6 +43,7 @@ const api: CausewayApi = {
   openExternal: (url) => ipcRenderer.invoke('causeway:open-external', url),
   pickFolder: () => ipcRenderer.invoke('causeway:pick-folder'),
   connectFolder: (folder) => ipcRenderer.invoke('causeway:connect-folder', folder),
+  unlinkFolder: () => ipcRenderer.invoke('causeway:unlink-folder'),
   start: () => ipcRenderer.invoke('causeway:start'),
   stop: () => ipcRenderer.invoke('causeway:stop'),
   refresh: () => ipcRenderer.invoke('causeway:refresh'),
@@ -54,7 +57,8 @@ const api: CausewayApi = {
   addPeerPort: (idOrName, mapping) => ipcRenderer.invoke('causeway:peer-port-add', idOrName, mapping),
   removePeerPort: (idOrName, mapping) => ipcRenderer.invoke('causeway:peer-port-remove', idOrName, mapping),
   addAllowedPort: (port) => ipcRenderer.invoke('causeway:port-add', port),
-  listeningPorts: () => ipcRenderer.invoke('causeway:listening-ports')
+  listeningPorts: () => ipcRenderer.invoke('causeway:listening-ports'),
+  runCli: (line: string) => ipcRenderer.invoke('causeway:run-cli', line)
 }
 
 contextBridge.exposeInMainWorld('causeway', api)

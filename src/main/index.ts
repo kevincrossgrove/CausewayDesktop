@@ -9,6 +9,20 @@ import appIconPath from '../../resources/icon.png?asset'
 app.setName('Causeway Desktop')
 process.title = 'Causeway Desktop'
 
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow) {
+      createWindow()
+      return
+    }
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+  })
+}
+
 let mainWindow: BrowserWindow | null = null
 let allowClose = false
 let quitPromptOpen = false
@@ -157,6 +171,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  if (!gotTheLock) return
   electronApp.setAppUserModelId('network.netcore.causeway-desktop')
   app.setAboutPanelOptions({
     applicationName: 'Causeway Desktop',

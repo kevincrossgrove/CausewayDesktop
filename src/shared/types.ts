@@ -22,6 +22,7 @@ export type DaemonState = {
   pid: number | null
   lastError: string | null
   logs: string[]
+  otherCwp2pPids: number[]
 }
 
 export type ParsedStatus = {
@@ -94,9 +95,10 @@ export type AppSnapshot = {
   version: string | null
   candidateFolders: string[]
   suggestedPeerName: string
+  allowedPorts: number[]
 }
 
-export type PageId = 'status' | 'peers' | 'ports' | 'connection' | 'learn' | 'settings'
+export type PageId = 'status' | 'peers' | 'ports' | 'connection' | 'terminal' | 'learn' | 'settings'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   causewayFolder: null,

@@ -1,3 +1,4 @@
+import { parsePortMappings } from '@shared/peerInput'
 import type { ParsedPeer, ParsedStatus, PortMapping } from '@shared/types'
 
 function labeledFields(text: string): Record<string, string> {
@@ -63,16 +64,22 @@ export function parseIdFromLogs(text: string): string | null {
   return labeled ? labeled[1].toLowerCase() : null
 }
 
-function parseMappingList(value: string | null): PortMapping[] {
-  if (!value || value === '-' || value.toLowerCase() === 'none') return []
-  return value
-    .split(/[,\s]+/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => {
-      const [localPort, remotePort] = item.split(':')
-      return { localPort: localPort ?? item, remotePort: remotePort ?? localPort ?? item }
-    })
+function parseMappingsFromPeerText(text: string): PortMapping[] {
+  const lines = text.split(/\r?\n/)
+  const chunks: string[] = []
+  for (let i = 0; i < lines.length; i += 1) {
+    const labeled = lines[i].match(/^\s*MAPPINGS\s{2,}(.*)$/i)
+    if (!labeled) continue
+    if (labeled[1].trim()) chunks.push(labeled[1].trim())
+    for (let j = i + 1; j < lines.length; j += 1) {
+      const line = lines[j]
+      if (!line.trim()) break
+      if (/^\S/.test(line)) break
+      chunks.push(line.trim())
+    }
+  }
+  if (chunks.length > 0) return parsePortMappings(chunks.join(', '))
+  return parsePortMappings(findField(labeledFields(text), 'Mappings', 'Ports', 'Port mappings'))
 }
 
 function parsePeerBlock(block: string): ParsedPeer | null {
@@ -94,10 +101,78 @@ function parsePeerBlock(block: string): ParsedPeer | null {
     rtt: findField(fields, 'RTT', 'Selected-pair RTT', 'Selected pair RTT'),
     selectedEndpoint: findField(fields, 'Selected endpoint', 'Selected'),
     publishedEndpoint: findField(fields, 'Published endpoint', 'Published'),
-    mappings: parseMappingList(findField(fields, 'Mappings', 'Ports', 'Port mappings')),
+    mappings: parseMappingsFromPeerText(trimmed),
     needsReAdd: /re-add|migrated/i.test(trimmed),
     raw: trimmed
   }
+}
+
+function unionMappings(left: PortMapping[], right: PortMapping[]): PortMapping[] {
+  const seen = new Set<string>()
+  const mappings: PortMapping[] = []
+  for (const mapping of [...left, ...right]) {
+    const key = `${mapping.localPort}:${mapping.remotePort}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    mappings.push(mapping)
+  }
+  return mappings
+}
+
+export function parsePeerTable(text: string): ParsedPeer[] {
+  const lines = text.split(/\r?\n/)
+  const headerIndex = lines.findIndex(
+    (line) => /^\s*PEER\s+ID\b/i.test(line) && /MAPPINGS/i.test(line)
+  )
+  if (headerIndex < 0) return []
+
+  const peers: ParsedPeer[] = []
+  for (const line of lines.slice(headerIndex + 1)) {
+    if (!line.trim()) break
+    const parts = line.trim().split(/\s{2,}/)
+    if (parts.length < 2) continue
+    peers.push({
+      name: parts[0] ?? '',
+      id: parts[1] ?? '',
+      status: parts[2] ?? null,
+      connectionType: parts[3] ?? null,
+      rtt: parts[4] ?? null,
+      selectedEndpoint: null,
+      publishedEndpoint: null,
+      mappings: parsePortMappings(parts[5] ?? null),
+      needsReAdd: /re-add|migrated/i.test(line),
+      raw: line.trim()
+    })
+  }
+  return peers.filter((peer) => peer.name || peer.id)
+}
+
+export function parseAllowedPorts(text: string): number[] {
+  const fields = labeledFields(text)
+  const value = findField(fields, 'Allowed ports', 'Allowed port', 'Port allow list', 'Allow list')
+  if (!value || value === '-' || value.toLowerCase() === 'none') return []
+  const ports: number[] = []
+  for (const match of value.matchAll(/\d{1,5}/g)) {
+    const port = Number(match[0])
+    if (Number.isInteger(port) && port >= 1 && port <= 65535 && !ports.includes(port)) {
+      ports.push(port)
+    }
+  }
+  return ports.sort((a, b) => a - b)
+}
+
+export function peersFromCli(peerListText: string, statusText: string): ParsedPeer[] {
+  const fromList = parsePeerList(peerListText)
+  const fromStatus = parsePeerTable(statusText)
+  if (fromList.length === 0) return fromStatus
+  if (fromStatus.length === 0) return fromList
+
+  const byName = new Map(fromStatus.map((peer) => [peer.name, peer]))
+  return fromList.map((peer) => {
+    const row = byName.get(peer.name)
+    if (!row) return peer
+    return { ...peer, mappings: unionMappings(peer.mappings, row.mappings) }
+  })
 }
 
 export function parsePeerList(text: string): ParsedPeer[] {
@@ -107,6 +182,9 @@ export function parsePeerList(text: string): ParsedPeer[] {
   const blocks = body.split(/\r?\n\s*\r?\n/).map((block) => block.trim()).filter(Boolean)
   const fromBlocks = blocks.map(parsePeerBlock).filter((peer): peer is ParsedPeer => peer !== null)
   if (fromBlocks.length > 0) return fromBlocks
+
+  const fromTable = parsePeerTable(body)
+  if (fromTable.length > 0) return fromTable
 
   const lines = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
   const header = lines[0]?.toLowerCase() ?? ''
@@ -121,7 +199,7 @@ export function parsePeerList(text: string): ParsedPeer[] {
         rtt: parts[4] ?? null,
         selectedEndpoint: null,
         publishedEndpoint: null,
-        mappings: parseMappingList(parts[5] ?? null),
+        mappings: parsePortMappings(parts[5] ?? null),
         needsReAdd: /re-add|migrated/i.test(line),
         raw: line
       }

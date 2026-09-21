@@ -6,10 +6,12 @@ import StatusPage from './pages/StatusPage'
 import PeersPage from './pages/PeersPage'
 import PortsPage from './pages/PortsPage'
 import ConnectionPage from './pages/ConnectionPage'
+import TerminalPage from './pages/TerminalPage'
 import LearnPage from './pages/LearnPage'
 import SettingsPage from './pages/SettingsPage'
 import { applyAppearance, watchSystemAppearance } from './theme'
-import { ChevronIcon, LogBlock } from './ui'
+import { BrandMark, ChevronIcon, LogBlock } from './ui'
+import { Button } from '@/components/ui/button'
 
 export default function App(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<AppSnapshot | null>(null)
@@ -64,6 +66,10 @@ export default function App(): React.JSX.Element {
     )
   }
 
+  if (blockedByOtherCwp2p(snapshot)) {
+    return <OtherCwp2pBlock snapshot={snapshot} onChange={setSnapshot} />
+  }
+
   if (!snapshot.settings.causewayFolder || !snapshot.binaryPath) {
     return <SetupWizard snapshot={snapshot} onConnected={setSnapshot} />
   }
@@ -82,16 +88,79 @@ export default function App(): React.JSX.Element {
         onAppearance={(appearance) => void window.causeway.setAppearance(appearance).then(setSnapshot)}
       />
       <div className="flex min-h-0 min-w-0 flex-col">
-        <main className="@container min-w-0 flex-1 overflow-auto px-6 py-7 desk:px-10 desk:py-8">
+        <main
+          className={
+            page === 'terminal'
+              ? '@container flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-6 py-7 desk:px-10 desk:py-8'
+              : '@container min-w-0 flex-1 overflow-auto px-6 py-7 desk:px-10 desk:py-8'
+          }
+        >
           {page === 'status' && <StatusPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'peers' && <PeersPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'ports' && <PortsPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'connection' && <ConnectionPage snapshot={snapshot} onChange={setSnapshot} />}
+          {page === 'terminal' && <TerminalPage snapshot={snapshot} onChange={setSnapshot} />}
           {page === 'learn' && <LearnPage snapshot={snapshot} />}
           {page === 'settings' && <SettingsPage snapshot={snapshot} onChange={setSnapshot} />}
         </main>
         <DaemonFooter snapshot={snapshot} />
       </div>
+    </div>
+  )
+}
+
+function blockedByOtherCwp2p(snapshot: AppSnapshot): boolean {
+  return snapshot.daemon.otherCwp2pPids.length > 0 && !snapshot.daemon.running && !snapshot.daemon.starting
+}
+
+function howToStopOtherCwp2p(platform: AppSnapshot['platform']): string {
+  if (platform === 'win32') {
+    return 'Press Ctrl+C in that terminal, or end cwp2p.exe in Task Manager.'
+  }
+  if (platform === 'darwin') {
+    return 'Press Control-C in that Terminal window, or quit cwp2p in Activity Monitor.'
+  }
+  return 'Press Control-C in that terminal, or stop the cwp2p process.'
+}
+
+function OtherCwp2pBlock({
+  snapshot,
+  onChange
+}: {
+  snapshot: AppSnapshot
+  onChange: (snapshot: AppSnapshot) => void
+}): React.JSX.Element {
+  const pids = snapshot.daemon.otherCwp2pPids
+  const pidLabel =
+    pids.length === 1 ? `Process ID ${pids[0]}.` : `Process IDs ${pids.join(', ')}.`
+
+  async function recheck(): Promise<void> {
+    onChange(await window.causeway.refresh())
+  }
+
+  return (
+    <div className="flex min-h-full flex-col items-start gap-8 p-6 desk:p-10">
+      <header className="flex items-start gap-3">
+        <BrandMark className="mt-0.5 size-10 rounded-xl" />
+        <div>
+          <h1 className="m-0 text-[17px] font-bold tracking-tight">Causeway</h1>
+          <p className="mt-1 text-sm leading-snug">A graphical wrapper around the official CLI</p>
+        </div>
+      </header>
+      <div>
+        <h2 className="m-0 text-[2.6rem] font-bold leading-none tracking-tight">
+          Causeway is already running.
+        </h2>
+        <p className="mt-4 mb-0 max-w-[46ch] text-[15px] leading-relaxed">
+          This app cannot start while {snapshot.binaryName} is running somewhere else on this computer,
+          for example in Terminal. Stop that process first, then you can use Causeway Desktop.
+        </p>
+        <p className="mt-3 mb-0 max-w-[46ch] text-[15px] leading-relaxed">{howToStopOtherCwp2p(snapshot.platform)}</p>
+        <p className="mt-3 mb-0 text-sm text-faint">{pidLabel}</p>
+      </div>
+      <Button className="px-5" onClick={() => void recheck()}>
+        Check again
+      </Button>
     </div>
   )
 }

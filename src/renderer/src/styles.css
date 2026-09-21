@@ -1,45 +1,57 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
-  font-family: ABCDiatype;
-  src: url('./assets/fonts/ABCDiatype-Regular.otf') format('opentype');
+  font-family: 'ABC Diatype';
+  src:
+    url('./assets/fonts/ABCDiatype-Regular.woff2') format('woff2'),
+    url('./assets/fonts/ABCDiatype-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
-  font-family: ABCDiatype;
-  src: url('./assets/fonts/ABCDiatype-Medium.otf') format('opentype');
+  font-family: 'ABC Diatype';
+  src:
+    url('./assets/fonts/ABCDiatype-Medium.woff2') format('woff2'),
+    url('./assets/fonts/ABCDiatype-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
-  font-family: ABCDiatype;
-  src: url('./assets/fonts/ABCDiatype-Bold.otf') format('opentype');
+  font-family: 'ABC Diatype';
+  src:
+    url('./assets/fonts/ABCDiatype-Bold.woff2') format('woff2'),
+    url('./assets/fonts/ABCDiatype-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Arsenal SC';
-  src: url('./assets/fonts/ArsenalSC-400.ttf') format('truetype');
+  src:
+    url('./assets/fonts/ArsenalSC-400.woff2') format('woff2'),
+    url('./assets/fonts/ArsenalSC-400.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Arsenal SC';
-  src: url('./assets/fonts/ArsenalSC-700.ttf') format('truetype');
+  src:
+    url('./assets/fonts/ArsenalSC-700.woff2') format('woff2'),
+    url('./assets/fonts/ArsenalSC-700.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 /* Product colors from https://www.netcore.network/causeway : cream, navy, burgundy */
@@ -63,6 +75,33 @@
   --app-primary: var(--navy);
   --app-on-primary: var(--cream);
   --app-code: color-mix(in srgb, var(--navy) 3%, #ffffff);
+  --radius: 0.8rem;
+  --background: var(--app-bg);
+  --foreground: var(--app-ink);
+  --card: var(--app-raised);
+  --card-foreground: var(--app-ink);
+  --popover: var(--app-raised);
+  --popover-foreground: var(--app-ink);
+  --primary: var(--app-primary);
+  --primary-foreground: var(--app-on-primary);
+  --secondary: var(--app-hover);
+  --secondary-foreground: var(--app-ink);
+  --muted: var(--app-hover);
+  --muted-foreground: var(--app-muted);
+  --accent: var(--app-hover);
+  --accent-foreground: var(--app-ink);
+  --destructive: var(--app-danger);
+  --border: var(--app-line);
+  --input: var(--app-line);
+  --ring: color-mix(in srgb, var(--navy) 35%, transparent);
+  --sidebar: var(--app-sidebar);
+  --sidebar-foreground: var(--app-ink);
+  --sidebar-primary: var(--app-primary);
+  --sidebar-primary-foreground: var(--app-on-primary);
+  --sidebar-accent: var(--app-hover);
+  --sidebar-accent-foreground: var(--app-ink);
+  --sidebar-border: var(--app-line);
+  --sidebar-ring: var(--ring);
 }
 
 .dark {
@@ -82,61 +121,124 @@
   --app-primary: var(--cream);
   --app-on-primary: #12111a;
   --app-code: #0e0d14;
+  --background: var(--app-bg);
+  --foreground: var(--app-ink);
+  --card: var(--app-raised);
+  --card-foreground: var(--app-ink);
+  --popover: var(--app-raised);
+  --popover-foreground: var(--app-ink);
+  --primary: var(--app-primary);
+  --primary-foreground: var(--app-on-primary);
+  --secondary: var(--app-hover);
+  --secondary-foreground: var(--app-ink);
+  --muted: var(--app-hover);
+  --muted-foreground: var(--app-muted);
+  --accent: var(--app-hover);
+  --accent-foreground: var(--app-ink);
+  --destructive: var(--app-danger);
+  --border: var(--app-line);
+  --input: var(--app-line);
+  --ring: color-mix(in srgb, var(--cream) 35%, transparent);
+  --sidebar: var(--app-sidebar);
+  --sidebar-foreground: var(--app-ink);
+  --sidebar-primary: var(--app-primary);
+  --sidebar-primary-foreground: var(--app-on-primary);
+  --sidebar-accent: var(--app-hover);
+  --sidebar-accent-foreground: var(--app-ink);
+  --sidebar-border: var(--app-line);
+  --sidebar-ring: var(--ring);
 }
 
 @theme {
-  --font-sans: ABCDiatype, Arsenal, 'Arsenal SC', ui-sans-serif, system-ui, sans-serif;
-  --font-label: 'Arsenal SC', ABCDiatype, Arsenal, sans-serif;
+  --font-sans: 'ABC Diatype', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'Arsenal SC', 'ABC Diatype', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --color-bg: var(--app-bg);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --color-raised: var(--app-raised);
   --color-hover: var(--app-hover);
   --color-line: var(--app-line);
   --color-ink: var(--app-ink);
-  --color-muted: var(--app-muted);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-faint: var(--app-faint);
-  --color-accent: var(--app-accent);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-accent-dim: var(--app-accent-dim);
   --color-danger: var(--app-danger);
   --color-warn: var(--app-warn);
   --color-ok: var(--app-ok);
-  --color-sidebar: var(--app-sidebar);
-  --color-primary: var(--app-primary);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-on-primary: var(--app-on-primary);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-code: var(--app-code);
   --color-cream: #fffff6;
   --color-navy: #081850;
   --color-burgundy: #800020;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
   --breakpoint-desk: 56.25rem;
 }
 
 @layer base {
+  * {
+    border-color: var(--border);
+  }
+
   html,
   body,
   #root {
-    @apply m-0 h-full bg-bg font-sans text-sm text-ink antialiased;
+    @apply m-0 h-full font-sans text-sm antialiased;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-synthesis: none;
+  }
+
+  body {
+    position: relative;
   }
 
   button,
   input,
   select,
   textarea {
-    @apply font-sans text-ink;
+    @apply font-sans text-foreground;
   }
 
-  button {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
     @apply cursor-pointer;
   }
 
   a {
-    @apply text-accent;
+    color: var(--app-accent);
   }
 
   code {
-    @apply rounded-md bg-hover px-1.5 py-px font-mono text-[0.92em];
-  }
-
-  :focus-visible {
-    @apply outline-2 outline-offset-2 outline-navy/25 dark:outline-cream/25;
+    @apply rounded-md bg-muted px-1.5 py-px font-mono text-[0.92em];
   }
 }
