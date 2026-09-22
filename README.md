@@ -7,7 +7,7 @@ This app does not replace the CLI. You still download Causeway from NetcoreNetwo
 ## Downloads
 
 <!-- release-downloads:start -->
-Latest version: **0.1.0** (16 September 2026).
+Latest version: **0.1.0** (22 September 2026).
 
 **macOS** — copy and paste this in Terminal. A browser download of the DMG will look damaged.
 
